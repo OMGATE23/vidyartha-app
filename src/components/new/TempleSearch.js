@@ -1,98 +1,102 @@
-import { Button, TextField } from "@material-ui/core";
+import { Button, ImageList, ImageListItem, TextField } from "@material-ui/core";
 import { ArrowForwardIos } from "@material-ui/icons";
 import { Autocomplete } from "@material-ui/lab";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
 import { debounce } from "lodash";
+import { getSchoolInfo } from "../../services/service";
+import TempleInfo from "./TempleInfo";
 
-const LandingPageForm = ({ orgCode }) => {
+const TempleSearch = ({ orgCode }) => {
   let autoCompleteRef = useRef(null);
-  const router = useRouter();
   const [text, setText] = useState("");
-  const [schools, setSchools] = useState([]);
+  const [temples, setTemples] = useState([]);
   const [city, setCity] = useState("");
-  const [finalPlace, setFinalPlace] = useState();
-  const [cardVisibility, setCardVisibility] = useState("none"); //visible
   const [latitude, setLatitude] = useState(7.798);
   const [longitude, setLongitude] = useState(68.14712);
-  console.log(schools)
+  const [templeId , setTempleId] = useState('')
+  const [templeInfo , setTempleInfo] = useState()
   function handleInput(e) {
 
-    
+    if (e.target.value === "") {
+      setTemples([]);
       setText(e.target.value);
-      fetchSchoolsAutoComplete();
-    
+    } else {
+      setText(e.target.value);
+      fetchtemplesAutoComplete();
+    }
   }
-  const fetchSchoolsAutoComplete = () => {
+  const fetchtemplesAutoComplete = () => {
     var service = new window.google.maps.places.AutocompleteService();
 
     var pyrmont = new window.google.maps.LatLng(latitude, longitude);
 
     var request = {
-      input: text ? text : 'school',
+      input: text,
       types: ["establishment"],
       componentRestrictions: { country: "in" },
       location: pyrmont,
       radius: "500",
     };
 
+    
+
     service.getPlacePredictions(request, function (predictions, status) {
       if (status == window.google.maps.places.PlacesServiceStatus.OK) {
-        setCardVisibility("block");
 
-        let schoolsArr = [];
+        let templesArr = [];
 
         for (var i = 0, prediction; (prediction = predictions[i]); i++) {
           if (
-            prediction.types.includes("school") ||
-            prediction.types.includes("university")
+            prediction.types.includes("hindu_temple")
           ) {
-            schoolsArr.push(prediction);
+            templesArr.push(prediction);
           }
         }
-        setSchools(() => {
-          return schoolsArr.map((item) => item);
+        setTemples(() => {
+          return templesArr.map((item) => item);
         });
       }
     });
   };
 
-  function fetchSchoolsBySelect(city) {
-    // from google
-    const pyrmont = new google.maps.LatLng(7.798, 68.14712);
-    try {
-      console.log('fetching by selected school')
-      const map = new google.maps.Map(document.getElementById("map"), {
-        center: pyrmont,
-        zoom: 15,
-      });
-      const service = new google.maps.places.PlacesService(map);
-
-      service.nearbySearch({
-        location : city.geometry.location,
-        radius : '500',
-        types : ['school' , 'university']
-
-      }, (results, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK) {
-          const filteredSchools = results.filter(school => (school.types.includes('school') || school.types.includes('university')))
-          console.log(filteredSchools)
-          setSchools(filteredSchools)
+  function fetchSchoolDetails(placeid) {
+        // from google
+        const pyrmont = new google.maps.LatLng(7.798, 68.14712);
+        try {
+          const request = {
+            placeId: placeid,
+          };
+    
+          const map = new google.maps.Map(document.getElementById("map"), {
+            center: pyrmont,
+            zoom: 15,
+          });
+          const service = new google.maps.places.PlacesService(map);
+    
+          service.getDetails(request, (place, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+              setTempleInfo(place);
+              
+            }
+            
+          });
+        } catch (error) {
         }
-      });
-    } catch (error) {
-      console.log(error.message)
-    }
-  }
+      }
 
   function selectedValue(event, value) {
     if (value) {
-      setFinalPlace(value);
       setText(value.name);
-      localStorage.setItem("placeInfo", JSON.stringify(value));
+      fetchSchoolDetails(value.place_id)
+      setTempleId(value.place_id)
+      
     }
   }
+  useEffect(() => {
+
+  } , [])
   useEffect(() => {
     let autoComplete = new window.google.maps.places.Autocomplete(
       autoCompleteRef.current,
@@ -105,12 +109,10 @@ const LandingPageForm = ({ orgCode }) => {
       const place = autoComplete.getPlace();
       setLatitude(place.geometry.location.lat());
       setLongitude(place.geometry.location.lng());
-      setCity(place);
-      fetchSchoolsBySelect(place)
+      setCity(place.name);
     });
 
     setText("");
-    setCardVisibility("none");
   }, []);
 
   return (
@@ -128,7 +130,7 @@ const LandingPageForm = ({ orgCode }) => {
         />
         <meta
           name="description"
-          content="In order to make our students ready for a globalised world and create an opportunity for them to learn about other nations and culture, we have developed partnerships with schools around the world. The function of education is to teach one to think intensively and to think critically. In order to make our students ready for a globalised world and create an opportunity for them to learn about other nations and culture, we have developed partnerships with schools around the world. The function of education is to teach one to think intensively and to think critically."
+          content="In order to make our students ready for a globalised world and create an opportunity for them to learn about other nations and culture, we have developed partnerships with temples around the world. The function of education is to teach one to think intensively and to think critically. In order to make our students ready for a globalised world and create an opportunity for them to learn about other nations and culture, we have developed partnerships with schools around the world. The function of education is to teach one to think intensively and to think critically."
         />
         <meta property="image" content="/banner-bg-original.png" />
         <meta
@@ -142,12 +144,12 @@ const LandingPageForm = ({ orgCode }) => {
         />
         <meta property="og:image" content="/banner-bg-original.png" />
       </Head>
-      <div className="landingpage-form">
-        <div className="landingpage-form-container">
-          <h2 className="landing-heading">
-            Help us to donate books to your school library
+      <div className="temple-form-main" id = "temple-search">
+        <div className="temple-form-container">
+          <h2 className="temple-heading">
+            Search Temple
           </h2>
-          <form className="landing-form">
+          <form className="temple-form">
             <TextField
               type="text"
               variant="outlined"
@@ -159,19 +161,18 @@ const LandingPageForm = ({ orgCode }) => {
             <Autocomplete
               disablePortal
               sx = {{width : '346px'}}
-              options={schools}
-              
-              noOptionsText="No Schools"
+              options={temples}
+              noOptionsText=""
               // open={true}
               onChange={(event, value) => selectedValue(event, value)}
               getOptionLabel={(option) =>
-                option.structured_formatting ? option.structured_formatting.main_text.toString() : option.name
+                option.structured_formatting.main_text.toString()
               }
               renderOption={(option) => {
                 return (
                   <div style={{ textAlign: "left", fontSize: "1.1rem" }}>
                     <p style={{ margin: "0px" }}>
-                      {option.structured_formatting ? option.structured_formatting.main_text : option.name}
+                      {option.structured_formatting.main_text}
                     </p>
                     <p
                       style={{
@@ -181,7 +182,7 @@ const LandingPageForm = ({ orgCode }) => {
                       }}
                     >
                       {" "}
-                      {option.structured_formatting ? option.structured_formatting.secondary_text : option.vicinity}
+                      {option.structured_formatting.secondary_text}
                     </p>
                   </div>
                 );
@@ -191,8 +192,7 @@ const LandingPageForm = ({ orgCode }) => {
                 return (
                   <TextField
                     {...params}
-                    label="Find your school"
-                    id = "school-autocomplete"
+                    label="Find Temple"
                     onChange={handleInput}
                     variant="outlined"
                     sx={{ fontSize: "2rem" }}
@@ -201,33 +201,17 @@ const LandingPageForm = ({ orgCode }) => {
               }}
             />
             </div>
-            <button
-              className="submit-btn"
-              disabled = {!(finalPlace && finalPlace.place_id)}
-              onClick={(e) => {
-                e.preventDefault()
-                if (finalPlace) {
-                  localStorage.setItem("visited", true);
-                  router.push(`${orgPath}/campaigns/${
-                    finalPlace.place_id
-                  }?name=${finalPlace.structured_formatting.main_text.replaceAll(
-                    " ",
-                    "-"
-                  )}`)
-                  
-                } else {
-                  alert("Please Select the school");
-                }
-              }}
-            >
-              Donate Now <ArrowForwardIos />
-            </button>
+            
           </form>
         </div>
       </div>
+      {
+        templeInfo && (<TempleInfo templeInfo={templeInfo} />
+        )
+      }
       <div style={{ visibility: 'hidden' }} id="map"></div>
     </>
   );
 };
 
-export default LandingPageForm;
+export default TempleSearch;

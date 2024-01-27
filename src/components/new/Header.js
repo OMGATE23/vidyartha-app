@@ -5,33 +5,33 @@ import { useRouter } from "next/router";
 const Header = ({ orgCode }) => {
   const [expand, setExpand] = useState(false);
   const router = useRouter();
-  const orgPath = orgCode || ''
+  const orgPath = orgCode ? orgCode.toUpperCase() : ""
   return (
     <div className="header-container">
       <header className="header">
-        <Link href={`/${orgPath}`} >
+        <a href={`/${orgPath}`} >
           <img className="landingpage-banner-img" src="/vidyartha-logo.svg" alt="vidyartha-logo" />
-        </Link>
+        </a>
         <div className="header-links">
           <div
             className={`${
               router.pathname === "/" ? "active" : ""
             }`}
           >
-            <Link href={`/${orgPath}`}>Homepage</Link>
+            <a href={`/${orgPath}`}>Homepage</a>
           </div>
           <div className={`${router.pathname.includes('/campaigns') ? "active" : ""}`}>
-            <Link href={`${orgPath}/campaigns`}>Campaigns</Link>
+            <Link href={`/${orgPath}/campaigns`}>Campaigns</Link>
           </div>
-          {/* <div
+          <div
             className={`${
               router.pathname.includes("/news-and-stories") ? "active" : ""
             }`}
           >
-            <Link href="/new/news-and-stories">News and Stories</Link>
-          </div> */}
+            <Link href={`/${orgPath}/news-and-stories`}>News and Stories</Link>
+          </div>
           <div className={`${router.pathname.includes("/aboutus")  ? "active" : ""}`}>
-            <Link href={`${orgPath}/aboutus`}>About</Link>
+            <Link href={`/${orgPath}/aboutus`}>About</Link>
           </div>
         </div>
 
@@ -53,24 +53,24 @@ const Header = ({ orgCode }) => {
                   router.pathname === "/" ? "active" : ""
                 }`}
               >
-                <Link href={`/${orgPath}`}>Homepage</Link>
+                <a href={`/${orgPath}`}>Homepage</a>
               </div>
               <div
                 className={`${router.pathname.includes('/campaigns') ? "active" : ""}`}
               >
-                <Link href={`${orgPath}/campaigns`}>Campaigns</Link>
+                <Link href={`/${orgPath}/campaigns`}>Campaigns</Link>
               </div>
-              {/* <div
+              <div
                 className={`${
                   router.pathname.includes("/news-and-stories") ? "active" : ""
                 }`}
               >
-                <Link href="/news-and-stories">News and Stories</Link>
-              </div> */}
+                <Link href={`/${orgPath}/news-and-stories`}>News and Stories</Link>
+              </div>
               <div
                 className={`${router.pathname.includes("/aboutus") ? "active" : ""}`}
               >
-                <Link href={`${orgPath}/aboutus`}>About</Link>
+                <Link href={`/${orgPath}/aboutus`}>About</Link>
               </div>
             </div>
           </div>
